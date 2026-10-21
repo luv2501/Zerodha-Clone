@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import { VerticalGraph } from "./VerticalGraph";
 
 // import { holdings } from "../data/data";
@@ -10,15 +10,15 @@ const Holdings = () => {
   useEffect(() => {
     const fetchHoldings = async () => {
       try {
-        const res = await axios.get("http://localhost:3002/allHoldings");
+        const res = await api.get("/allHoldings");
 
         const holdings = res.data;
 
         const updatedHoldings = await Promise.all(
           holdings.map(async (stock) => {
             try {
-              const response = await axios.get(
-                `http://localhost:3002/stock/${stock.name}`
+              const response = await api.get(
+                `/stock/${stock.name}`
               );
 
               const quote = response.data["Global Quote"];

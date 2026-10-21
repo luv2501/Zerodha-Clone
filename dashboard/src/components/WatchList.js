@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 
-import axios from "axios";
+import api from "../api";
 
 import GeneralContext from "./GeneralContext";
 
@@ -55,8 +55,8 @@ useEffect(() => {
 
     for (const symbol of symbols) {
       try {
-        const response = await axios.get(
-          `http://localhost:3002/stock/${symbol}`
+        const response = await api.get(
+          `/stock/${symbol}`
         );
 
         const quote = response.data["Global Quote"];
@@ -183,7 +183,11 @@ const WatchListActions = ({ uid }) => {
   const generalContext = useContext(GeneralContext);
 
   const handleBuyClick = () => {
-    generalContext.openBuyWindow(uid);
+    generalContext.openBuyWindow(uid, "BUY");
+  };
+
+  const handleSellClick = () => {
+    generalContext.openBuyWindow(uid, "SELL");
   };
 
   return (
@@ -204,7 +208,7 @@ const WatchListActions = ({ uid }) => {
           arrow
           TransitionComponent={Grow}
         >
-          <button className="sell">Sell</button>
+          <button className="sell" onClick={handleSellClick}>Sell</button>
         </Tooltip>
         <Tooltip
           title="Analytics (A)"

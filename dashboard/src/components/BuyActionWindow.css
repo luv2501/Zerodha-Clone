@@ -1,7 +1,10 @@
 .container {
     --radius: 4px;
     width: 40%;
+    min-width: 320px;
+    max-width: 480px;
     height: 63%;
+    min-height: 400px;
     background: rgb(245, 245, 245);
     position: absolute;
     bottom: 0;
@@ -11,6 +14,7 @@
     z-index: 100;
     border-radius: var(--radius);
     border: 1px solid rgb(238, 238, 238);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
   
   .dragging {
@@ -50,172 +54,108 @@
   .stop-loss-type label,
   .stop-loss-type label input {
     margin-right: 6px;
-    cursor: pointer;
-  }
-  
-  .market-options input[type="radio"] {
-    border: 1px solid #ddd;
-    cursor: pointer;
-    padding: 2px;
-    margin-right: 6px;
   }
   
   .tab {
-    width: 100%;
-    box-sizing: border-box;
-    background-color: #f9f9f9;
-    border-bottom: 2px solid rgba(180, 180, 180, 0.6);
-  }
-  
-  .tab button {
-    border: none;
+    display: inline-block;
     padding: 14px 16px;
-    background: transparent;
+    color: rgb(155, 155, 155);
+    font-size: 0.8rem;
+  }
+  
+  .tab.selected {
     color: #4184f3;
-    font-weight: 400;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-  
-  .regular-order {
-    padding: 16px 26px;
-    background-color: #fff;
-    padding-bottom: 30px;
-  }
-  
-  .regular-order label {
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
-  
-  .order-validity {
-    width: 70%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .order-validity label span {
-    color: rgb(190, 190, 190);
   }
   
   .inputs {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 16px;
-    margin-bottom: 16px;
+    padding: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   
   .inputs fieldset {
-    max-width: 120px;
-    box-sizing: border-box;
-    border: 0.7px solid #ddd;
-    margin-right: 8px;
+    border: 1px solid #dcdcdc;
+    border-radius: var(--radius);
+    padding: 4px 10px;
+    flex: 1 1 120px;
   }
   
   .inputs fieldset legend {
-    margin-left: 10px;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+    color: #666;
     padding: 0 4px;
-  }
-  
-  .inputs fieldset:last-of-type legend {
-    color: #ddd;
+    margin-bottom: 0;
+    width: auto;
   }
   
   .inputs fieldset input {
     border: none;
-    margin-right: 8px;
-    max-width: 130px;
-    min-height: 35px;
-    padding: 0 12px;
-    box-sizing: border-box;
-    font-size: 1.1rem;
-  }
-  
-  .options {
+    background: transparent;
     width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .options span {
-    color: #4184f3;
-    font-size: 0.8rem;
-    cursor: pointer;
+    outline: none;
+    font-size: 0.9rem;
   }
   
   .buttons {
-    width: 100%;
-    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: relative;
-    top: 10%;
-    padding: 0 20px;
+    padding: 16px;
+    border-top: 1px solid #e0e0e0;
+    background: #fff;
+    border-bottom-left-radius: var(--radius);
+    border-bottom-right-radius: var(--radius);
+    flex-wrap: wrap;
+    gap: 10px;
   }
   
   .buttons span {
     font-size: 0.8rem;
-  }
-  
-  .btn {
-    text-decoration: none;
-    padding: 10px 20px;
-    border-radius: 2px;
-    color: #fff;
-    margin-right: 2px;
-    margin-left: 2px;
+    color: #666;
   }
   
   .btn-grey {
-    background: #d4d4d4;
-    color: #666666;
-  }
-  
-  .btn-blue {
-    background: #4184f3;
-  }
-  
-  /* sudo selectors */
-  .tab button::after {
-    content: "";
-    width: 100%;
-    height: 3px;
-    display: none;
-    margin-top: 10px;
-    background-color: #4184f3;
-  }
-  
-  .inputs fieldset:focus {
-    outline: none;
-    border: 0.7px solid rgb(49, 49, 49);
-    border-radius: 2px;
-  }
-  
-  .inputs fieldset input:focus {
-    outline: none;
-  }
-  
-  .inputs fieldset input:focus {
-    outline: none;
-  }
-  
-  .inputs fieldset input:disabled {
-    cursor: not-allowed;
-    background-color: transparent;
-  }
-  
-  .btn-blue:hover {
-    background: #74a7fa;
+    background: #9b9b9b;
   }
   
   .btn-grey:hover {
-    background: #9b9b9b;
-    color: #fff;
+    background: #b5b5b5;
   }
-  
+
+  @media (max-width: 768px) {
+    .container {
+      width: 90% !important;
+      left: 5% !important;
+      right: 5% !important;
+      bottom: 2% !important;
+      height: auto !important;
+      min-height: auto !important;
+      position: fixed !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      width: 96% !important;
+      left: 2% !important;
+      right: 2% !important;
+      bottom: 2% !important;
+    }
+    .buttons {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+    }
+    .buttons div {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    .buttons div .btn {
+      flex: 1;
+      text-align: center;
+    }
+  }
