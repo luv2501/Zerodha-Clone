@@ -189,18 +189,53 @@ app.get("/allPositions", async (req, res) => {
   res.json(allPositions);
 });
 app.post("/newOrder", async (req, res) => {
-  let newOrder = new OrdersModel({
-    name: req.body.name,
-    qty: req.body.qty,
-    price: req.body.price,
-    mode: req.body.mode,
-  });
+  try {
+    const { name, qty, price, mode } = req.body;
 
-  newOrder.save();
+    if (mode === "SELL") {
+      const holding = await HoldingsModel.findOne({ name });
 
-  res.send("Order saved!");
+      if (!holding) {
+        return res.status(400).json({
+          message: "You don't own this stock!",
+        });
+      }
+
+      if (holding.qty < Number(qty)) {
+        return res.status(400).json({
+          message: `Insufficient shares! Available quantity: ${holding.qty}`,
+        });
+      }
+
+      holding.qty -= Number(qty);
+
+      if (holding.qty === 0) {
+        await HoldingsModel.deleteOne({ _id: holding._id });
+      } else {
+        await holding.save();
+      }
+    }
+
+    const newOrder = new OrdersModel({
+      name,
+      qty,
+      price,
+      mode,
+    });
+
+    await newOrder.save();
+
+    res.status(201).json({
+      message: `${mode} order placed successfully!`,
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Something went wrong!",
+    });
+  }
 });
-
 mongoose
   .connect(uri)
   .then(() => {
