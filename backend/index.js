@@ -4,6 +4,7 @@ const express=require("express");
 const mongoose =require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const axios = require("axios");
 
 const {HoldingsModel}=require('./models/HoldingsModel');  
 
@@ -179,6 +180,31 @@ app.use(bodyParser.json());
 // });
 // res.send("Done");
 // });
+
+//api integration
+
+app.get("/stock/:symbol", async (req, res) => {
+  try {
+    const symbol = req.params.symbol;
+
+    const response = await axios.get(
+      "https://www.alphavantage.co/query",
+      {
+        params: {
+          function: "GLOBAL_QUOTE",
+          symbol: `${symbol}.BSE`,
+          apikey: process.env.ALPHA_VANTAGE_API_KEY,
+        },
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Stock API failed" });
+  }
+});
+
 
 app.get("/allHoldings", async (req, res) => {
   let allHoldings = await HoldingsModel.find({});
