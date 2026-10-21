@@ -1,4 +1,6 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
+
+import api from "../api";
 
 import GeneralContext from "./GeneralContext";
 
@@ -12,8 +14,107 @@ import {
 } from "@mui/icons-material";
 
 import { watchlist } from "../data/data";
+import { DoughnutChart } from "./DoughnoutChart";
+
+const labels = watchlist.map((subArray) => subArray["name"]);
 
 const WatchList = () => {
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Price",
+        data: watchlist.map((stock) => stock.price),
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.5)",
+          "rgba(54, 162, 235, 0.5)",
+          "rgba(255, 206, 86, 0.5)",
+          "rgba(75, 192, 192, 0.5)",
+          "rgba(153, 102, 255, 0.5)",
+          "rgba(255, 159, 64, 0.5)",
+        ],
+        borderColor: [
+          "rgba(255, 99, 132, 1)",
+          "rgba(54, 162, 235, 1)",
+          "rgb(86, 255, 89)",
+          "rgba(75, 192, 192, 1)",
+          "rgba(153, 102, 255, 1)",
+          "rgba(255, 159, 64, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+const [livePrices, setLivePrices] = useState({});
+const hasFetched = useRef(false);
+
+useEffect(() => {
+  const fetchPrices = async () => {
+    const symbols = ["RELIANCE", "INFY", "TCS"];
+    const prices = {};
+
+    for (const symbol of symbols) {
+      try {
+        const response = await api.get(
+          `/stock/${symbol}`
+        );
+
+        const quote = response.data["Global Quote"];
+
+        if (quote && quote["05. price"]) {
+          prices[symbol] = Number(quote["05. price"]);
+        }
+      } catch (error) {
+        console.log(`${symbol} price error:`, error);
+      }
+    }
+
+    setLivePrices(prices);
+  };
+if (hasFetched.current) return;
+
+hasFetched.current = true;
+fetchPrices();
+}, []);
+const updatedData = {
+  ...data,
+  datasets: [
+    {
+      ...data.datasets[0],
+      data: watchlist.map(
+        (stock) => livePrices[stock.name] ?? stock.price
+      ),
+    },
+  ],
+};
+console.log("LIVE PRICES:", livePrices);
+  // export const data = {
+  //   labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+  // datasets: [
+  //   {
+  //     label: "# of Votes",
+  //     data: [12, 19, 3, 5, 2, 3],
+  //     backgroundColor: [
+  //       "rgba(255, 99, 132, 0.2)",
+  //       "rgba(54, 162, 235, 0.2)",
+  //       "rgba(255, 206, 86, 0.2)",
+  //       "rgba(75, 192, 192, 0.2)",
+  //       "rgba(153, 102, 255, 0.2)",
+  //       "rgba(255, 159, 64, 0.2)",
+  //     ],
+  //     borderColor: [
+  //       "rgba(255, 99, 132, 1)",
+  //       "rgba(54, 162, 235, 1)",
+  //       "rgba(255, 206, 86, 1)",
+  //       "rgba(75, 192, 192, 1)",
+  //       "rgba(153, 102, 255, 1)",
+  //       "rgba(255, 159, 64, 1)",
+  //     ],
+  //     borderWidth: 1,
+  //   },
+  // ],
+  // };
+
   return (
     <div className="watchlist-container">
       <div className="search-container">
@@ -28,17 +129,25 @@ const WatchList = () => {
       </div>
 
       <ul className="list">
-        {watchlist.map((stock, index) => {
-          return <WatchListItem stock={stock} key={index} />;
-        })}
-      </ul>
+  {watchlist.map((stock, index) => {
+    return (
+      <WatchListItem
+        stock={stock}
+        livePrices={livePrices}
+        key={index}
+      />
+    );
+  })}
+</ul>
+      <DoughnutChart data={updatedData} />
     </div>
   );
 };
 
 export default WatchList;
 
-const WatchListItem = ({ stock }) => {
+const WatchListItem = ({ stock, livePrices }) => {
+  console.log(stock.name, livePrices[stock.name]);
   const [showWatchlistActions, setShowWatchlistActions] = useState(false);
 
   const handleMouseEnter = (e) => {
@@ -60,7 +169,9 @@ const WatchListItem = ({ stock }) => {
           ) : (
             <KeyboardArrowUp className="down" />
           )}
-          <span className="price">{stock.price}</span>
+         <span className="price">
+  {livePrices[stock.name] ?? stock.price}
+</span>
         </div>
       </div>
       {showWatchlistActions && <WatchListActions uid={stock.name} />}
@@ -87,30 +198,29 @@ const WatchListActions = ({ uid }) => {
           placement="top"
           arrow
           TransitionComponent={Grow}
+          onClick={handleBuyClick}
         >
-          <button className="buy" onClick={handleBuyClick}>
-            Buy
-          </button>
+          <button className="buy">Buy</button>
         </Tooltip>
-
         <Tooltip
           title="Sell (S)"
           placement="top"
           arrow
           TransitionComponent={Grow}
         >
-          <button className="sell" onClick={handleSellClick}>
-            Sell
-          </button>
+          <button className="sell" onClick={handleSellClick}>Sell</button>
         </Tooltip>
-
-        <Tooltip title="Analytics (A)" placement="top" arrow>
+        <Tooltip
+          title="Analytics (A)"
+          placement="top"
+          arrow
+          TransitionComponent={Grow}
+        >
           <button className="action">
             <BarChartOutlined className="icon" />
           </button>
         </Tooltip>
-
-        <Tooltip title="More" placement="top" arrow>
+        <Tooltip title="More" placement="top" arrow TransitionComponent={Grow}>
           <button className="action">
             <MoreHoriz className="icon" />
           </button>

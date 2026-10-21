@@ -844,3 +844,130 @@ hr {
 
 
 
+
+/* ============================================================
+   PHASE G — Holdings, Positions & Orders Responsive Fixes
+   SCOPE: Only .order-table tables, .row/.col P&L summary,
+          h3.title headings, .orders container.
+   Desktop layout (>1024px) is UNCHANGED — all rules are
+   either inside max-width media queries, or are overflow-only
+   additions that do not affect desktop rendering.
+   ============================================================ */
+
+/* --- Scrollable table wrapper (all widths) ---
+   Prevents 8/7/6-column tables from squishing on small screens.
+   overflow-x: auto was NOT set on .order-table previously. */
+.order-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Minimum table width so columns never collapse below readable size.
+   Holdings = 8 cols (720px), Positions = 7 cols, Orders = 6 cols.
+   720px covers all three without extra specificity. */
+.order-table table {
+  min-width: 720px;
+}
+
+/* --- Tablet (≤1024px) --- */
+@media (max-width: 1024px) {
+  .order-table th,
+  .order-table td {
+    padding: 10px 8px;
+    font-size: 0.82rem;
+  }
+
+  /* P&L summary row wraps at tablet width */
+  .row {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4%;
+  }
+
+  .col {
+    flex-basis: 48%;
+    min-width: 140px;
+  }
+
+  .col h5 {
+    font-size: 1.4rem;
+  }
+}
+
+/* --- Tablet portrait / large mobile (≤768px) --- */
+@media (max-width: 768px) {
+  .order-table th,
+  .order-table td {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+  }
+
+  h3.title {
+    font-size: 1.1rem;
+  }
+
+  /* Orders empty-state no longer forces a fixed 90vh on small screens */
+  .orders {
+    height: auto;
+    min-height: 60vh;
+  }
+
+  .row {
+    gap: 10px;
+    margin-top: 3%;
+  }
+
+  .col {
+    flex-basis: 48%;
+  }
+
+  .col h5 {
+    font-size: 1.2rem;
+  }
+}
+
+/* --- Mobile (≤480px) --- */
+@media (max-width: 480px) {
+  .order-table th,
+  .order-table td {
+    padding: 7px 5px;
+    font-size: 0.74rem;
+  }
+
+  h3.title {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  /* Stack P&L summary columns full-width on small phones */
+  .col {
+    flex-basis: 100%;
+    min-width: unset;
+  }
+
+  .col h5 {
+    font-size: 1.1rem;
+  }
+
+  .col p {
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+}
+
+/* --- Small mobile (≤375px) --- */
+@media (max-width: 375px) {
+  .order-table th,
+  .order-table td {
+    padding: 6px 4px;
+    font-size: 0.7rem;
+  }
+
+  h3.title {
+    font-size: 0.95rem;
+  }
+}
+
+/* ============================================================
+   END Phase G — Holdings, Positions & Orders responsive fixes
+   ============================================================ */
