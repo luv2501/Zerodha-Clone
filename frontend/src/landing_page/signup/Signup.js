@@ -7,7 +7,10 @@ function Signup() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const dashboardUrl =
-    process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001";
+  process.env.REACT_APP_DASHBOARD_URL ||
+  (process.env.NODE_ENV === "development"
+    ? "http://localhost:3001"
+    : "https://zerodha-clone-drdl-nine.vercel.app");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,11 +23,15 @@ function Signup() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      window.location.href = dashboardUrl;
-    }
-  }, [isAuthenticated, dashboardUrl]);
+useEffect(() => {
+  if (isAuthenticated) {
+    const token = localStorage.getItem("token");
+
+    window.location.href = token
+      ? `${dashboardUrl}/#token=${encodeURIComponent(token)}`
+      : dashboardUrl;
+  }
+}, [isAuthenticated, dashboardUrl]);
 
   const handleChange = (e) => {
     setFormData({

@@ -1,4 +1,5 @@
-require('dotenv').config();
+
+require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -7,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const axios = require("axios");
 
-const { HoldingsModel } = require('./models/HoldingsModel');  
+const { HoldingsModel } = require("./models/HoldingsModel");
 const { PositionsModel } = require("./models/PositionsModel");
 const { OrdersModel } = require("./models/OrdersModel");
 const authRoute = require("./routes/authRoute");
@@ -18,20 +19,27 @@ const uri = process.env.MONGO_URL;
 
 const app = express();
 
+// Allowed frontend and dashboard origins
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "http://localhost:3000",
-  process.env.DASHBOARD_URL || "http://localhost:3001",
-];
+  "http://localhost:3000",
+  "http://localhost:3001",
+  process.env.FRONTEND_URL,
+  process.env.DASHBOARD_URL,
+].filter(Boolean);
 
+// CORS configuration
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      return callback(null, true);
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -41,7 +49,7 @@ app.use(cookieParser());
 // Authentication routes
 app.use("/auth", authRoute);
 
-// Live stock quotes API (public for watchlist and dashboard)
+// Live stock quotes API
 app.get("/stock/:symbol", async (req, res) => {
   try {
     const symbol = req.params.symbol;
@@ -64,42 +72,57 @@ app.get("/stock/:symbol", async (req, res) => {
   }
 });
 
-// User-specific holdings (protected)
+// User-specific holdings
 app.get("/allHoldings", authMiddleware, async (req, res) => {
   try {
-    const userHoldings = await HoldingsModel.find({ userId: req.user._id });
+    const userHoldings = await HoldingsModel.find({
+      userId: req.user._id,
+    });
+
     res.json(userHoldings);
   } catch (error) {
     console.error("Holdings fetch error:", error);
-    res.status(500).json({ message: "Failed to fetch holdings" });
+    res.status(500).json({
+      message: "Failed to fetch holdings",
+    });
   }
 });
 
-// User-specific positions (protected)
+// User-specific positions
 app.get("/allPositions", authMiddleware, async (req, res) => {
   try {
-    const userPositions = await PositionsModel.find({ userId: req.user._id });
+    const userPositions = await PositionsModel.find({
+      userId: req.user._id,
+    });
+
     res.json(userPositions);
   } catch (error) {
     console.error("Positions fetch error:", error);
-    res.status(500).json({ message: "Failed to fetch positions" });
+    res.status(500).json({
+      message: "Failed to fetch positions",
+    });
   }
 });
 
-// User-specific orders (protected)
+// User-specific orders
 app.get("/allOrders", authMiddleware, async (req, res) => {
   try {
-    const userOrders = await OrdersModel.find({ userId: req.user._id }).sort({
+    const userOrders = await OrdersModel.find({
+      userId: req.user._id,
+    }).sort({
       createdAt: -1,
     });
+
     res.json(userOrders);
   } catch (error) {
     console.error("Orders fetch error:", error);
-    res.status(500).json({ message: "Failed to fetch orders" });
+    res.status(500).json({
+      message: "Failed to fetch orders",
+    });
   }
 });
 
-// User-specific order execution (protected)
+// User-specific order execution
 app.post("/newOrder", authMiddleware, async (req, res) => {
   try {
     const { name, qty, price, mode } = req.body;
@@ -116,7 +139,10 @@ app.post("/newOrder", authMiddleware, async (req, res) => {
     const orderMode = (mode || "BUY").toUpperCase();
 
     if (orderMode === "SELL") {
-      const holding = await HoldingsModel.findOne({ name, userId });
+      const holding = await HoldingsModel.findOne({
+        name,
+        userId,
+      });
 
       if (!holding) {
         return res.status(400).json({
@@ -133,22 +159,36 @@ app.post("/newOrder", authMiddleware, async (req, res) => {
       holding.qty -= orderQty;
 
       if (holding.qty === 0) {
-        await HoldingsModel.deleteOne({ _id: holding._id, userId });
+        await HoldingsModel.deleteOne({
+          _id: holding._id,
+          userId,
+        });
       } else {
         await holding.save();
       }
     } else if (orderMode === "BUY") {
-      const existingHolding = await HoldingsModel.findOne({ name, userId });
+      const existingHolding = await HoldingsModel.findOne({
+        name,
+        userId,
+      });
 
       if (existingHolding) {
         const newQty = existingHolding.qty + orderQty;
+
         const totalCost =
-          existingHolding.avg * existingHolding.qty + orderPrice * orderQty;
+          existingHolding.avg * existingHolding.qty +
+          orderPrice * orderQty;
+
         const newAvg = totalCost / newQty;
 
         existingHolding.qty = newQty;
         existingHolding.avg = Number(newAvg.toFixed(2));
-        existingHolding.price = orderPrice > 0 ? orderPrice : existingHolding.price;
+
+        existingHolding.price =
+          orderPrice > 0
+            ? orderPrice
+            : existingHolding.price;
+
         await existingHolding.save();
       } else {
         const newHolding = new HoldingsModel({
@@ -160,8 +200,13 @@ app.post("/newOrder", authMiddleware, async (req, res) => {
           net: "+0.00%",
           day: "+0.00%",
         });
+
         await newHolding.save();
       }
+    } else {
+      return res.status(400).json({
+        message: "Invalid order mode",
+      });
     }
 
     const newOrder = new OrdersModel({
@@ -181,12 +226,14 @@ app.post("/newOrder", authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error("Order processing error:", error);
+
     res.status(500).json({
       message: "Something went wrong while placing order!",
     });
   }
 });
 
+// MongoDB connection and server startup
 mongoose
   .connect(uri)
   .then(() => {
@@ -197,5 +244,5 @@ mongoose
     });
   })
   .catch((error) => {
-    console.log("MongoDB connection error:", error);
+    console.error("MongoDB connection error:", error);
   });

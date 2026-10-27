@@ -4,7 +4,10 @@ import { useAuth } from "../AuthContext";
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const landingPageUrl =
-    process.env.REACT_APP_LANDING_PAGE_URL || "http://localhost:3000";
+  process.env.REACT_APP_LANDING_PAGE_URL ||
+  (process.env.NODE_ENV === "development"
+    ? "http://localhost:3000"
+    : "https://zerodha-clone-seven-orpin.vercel.app");
 
   if (loading) {
     return (

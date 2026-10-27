@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
+
 import api from "./api";
 
 const AuthContext = createContext(null);
@@ -11,14 +17,17 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       const res = await api.get("/auth/verify");
+
       if (res.data && res.data.authenticated) {
         setUser(res.data.user);
         setIsAuthenticated(true);
       } else {
+        localStorage.removeItem("token");
         setUser(null);
         setIsAuthenticated(false);
       }
-    } catch (err) {
+    } catch (error) {
+      localStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -30,7 +39,11 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const loginSuccess = (userData) => {
+  const loginSuccess = (userData, token) => {
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+
     setUser(userData);
     setIsAuthenticated(true);
   };
@@ -38,9 +51,10 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await api.post("/auth/logout");
-    } catch (err) {
-      console.error("Logout error:", err);
+    } catch (error) {
+      console.error("Logout error:", error);
     } finally {
+      localStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -63,5 +77,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-export default AuthContext;
 
+export default AuthContext;
