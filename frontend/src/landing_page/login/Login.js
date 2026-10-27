@@ -6,8 +6,11 @@ import { useAuth } from "../../AuthContext";
 function Login() {
   const location = useLocation();
   const { isAuthenticated, loginSuccess } = useAuth();
-  const dashboardUrl =
-    process.env.REACT_APP_DASHBOARD_URL || "http://localhost:3001";
+ const dashboardUrl =
+  process.env.REACT_APP_DASHBOARD_URL ||
+  (process.env.NODE_ENV === "development"
+    ? "http://localhost:3001"
+    : "https://zerodha-clone-drdl-nine.vercel.app");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -21,10 +24,14 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      window.location.href = dashboardUrl;
-    }
-  }, [isAuthenticated, dashboardUrl]);
+  if (isAuthenticated) {
+    const token = localStorage.getItem("token");
+
+    window.location.href = token
+      ? `${dashboardUrl}/#token=${encodeURIComponent(token)}`
+      : dashboardUrl;
+  }
+}, [isAuthenticated, dashboardUrl]);
 
   const handleChange = (e) => {
     setFormData({
@@ -55,9 +62,13 @@ function Login() {
       });
 
       if (response.data && response.data.success) {
-        loginSuccess(response.data.user);
-        window.location.href = dashboardUrl;
-      }
+  const { user, token } = response.data;
+
+  loginSuccess(user, token);
+
+  window.location.href =
+    `${dashboardUrl}/#token=${encodeURIComponent(token)}`;
+}
     } catch (err) {
       console.error("Login request error:", err);
       if (err.response && err.response.data && err.response.data.message) {

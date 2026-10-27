@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from "react";
+
 import api from "./api";
 
 const AuthContext = createContext(null);
@@ -9,19 +15,25 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const landingPageUrl =
-    process.env.REACT_APP_LANDING_PAGE_URL || "http://localhost:3000";
+    process.env.REACT_APP_LANDING_PAGE_URL ||
+    (process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://zerodha-clone-seven-orpin.vercel.app");
 
   const checkAuth = async () => {
     try {
       const response = await api.get("/auth/verify");
+
       if (response.data && response.data.authenticated) {
         setUser(response.data.user);
         setIsAuthenticated(true);
       } else {
+        localStorage.removeItem("token");
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
+      localStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -39,8 +51,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Dashboard logout error:", error);
     } finally {
+      localStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
+
       window.location.href = landingPageUrl;
     }
   };
@@ -61,5 +75,5 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-export default AuthContext;
 
+export default AuthContext;
